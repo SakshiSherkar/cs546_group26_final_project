@@ -2,16 +2,17 @@
 // Note: please do not forget to export the router!
 
 router
-  .route('/:productId')
+  .route('/:propertyId')
   .get(async (req, res) => {
     //code here for GET
+    
   })
   .post(async (req, res) => {
     //code here for POST
   });
 
 router
-  .route('/review/:reviewId')
+  .route('/comment/:commentId')
   .get(async (req, res) => {
     //code here for GET
   })

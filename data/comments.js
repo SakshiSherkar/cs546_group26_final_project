@@ -2,7 +2,7 @@ import {properties} from '../config/mongoCollections.js';
 import {ObjectId} from 'mongodb';
 import {validateString} from "helpers.js";
 
-export const createReview = async(
+export const createComment = async(
 propertyId,
 userId,
 CommentText
@@ -16,21 +16,21 @@ propertyId = validateString(propertyId, 'propertyId');
 userId = validateString(userId, 'userId');
 CommentText = validateString(CommentText, 'CommentText');
 
-if(!Object.isValid(propertyId)) throw 'Invalid PropertyId';
-if(!Object.isValid(userId)) throw 'Invalid userId';
+if(!ObjectId.isValid(propertyId)) throw 'Invalid PropertyId';
+if(!ObjectId.isValid(userId)) throw 'Invalid userId';
 const commentId = new ObjectId();
 const currentDate = new Date();
 const postTime = currentDate.toLocaleString('en-US', {month: '2-digit', day: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true});
 
-const commentObj = {commentId: new ObjectId(commentId),
+const commentObj = {commentId: commentId.toString(),
                     userId,
                     CommentText,
                     postTime
                     }
 const propertyCollection = await properties();
-const property = await propertyCollection.findOne({ propertyId: new ObjectId(propertyId)});
+const property = await propertyCollection.findOne({ _id: new ObjectId(propertyId)});
 if(!property) throw 'property not found';
-await propertyCollection.updateOne({propertyId: new ObjectId(propertyId)}, {$push: {comments: commentObj}});
+await propertyCollection.updateOne({_id: new ObjectId(propertyId)}, {$push: {comments: commentObj}});
 return commentObj;
 };
 
@@ -41,7 +41,7 @@ if(typeof propertyId !== 'string') throw 'Property Id must be a string';
 if(!ObjectId.isValid(propertyId)) throw 'invalid propertyId';
 
 const propertyCollection = await properties();
-const property = await propertyCollection.findOne({propertyId:new ObjectId(propertyId)});
+const property = await propertyCollection.findOne({_id:new ObjectId(propertyId)});
 if(!property) throw 'property not found';
 return property.comments;
 };
@@ -54,12 +54,12 @@ if(!ObjectId.isValid(commentId)) throw 'Invalid commentId';
 const propertyCollection = await properties();
 const property = await propertyCollection.findOne({"comments.commentId": new ObjectId(commentId)});
 if(!property) throw 'property not found';
-const foundComment = property.comments.find(comment => comment.commentId.toString() === commentId);
+const foundComment = property.comments.find(comment => comment.commentId === commentId);
 if(!foundComment) throw 'comment not found';
 return foundComment;
 };
 
-export const updateReview = async(commentId, updateObj) => {
+export const updateComment = async(commentId, updateObj) => {
 if(!commentId) throw 'commentId is required';
 if(typeof commentId !== 'string') throw 'commentId must be a string';
 if(!ObjectId.isvalid(commentId)) throw 'Invalid commentId';
@@ -94,6 +94,6 @@ if(!property) throw 'property not found';
 
 await propertyCollection.updateOne({"comments.commentId": new ObjectId(commentId)}, {$pull: {comments: {commentId: new ObjectId(commentId)}}});
 
-const finProperty = await propertyCollection.findOne({propertyId: property.propertyId});
+const finProperty = await propertyCollection.findOne({_id: property._id});
 return finProperty;
 };
